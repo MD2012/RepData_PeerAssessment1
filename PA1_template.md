@@ -1,75 +1,77 @@
----
-title: 'Reproducible Research: Peer Assessment 1'
-output:
-  html_document:
-    keep_md: yes
----
-```{r, echo=FALSE}
-library(dplyr)
-library(lattice)
-get_filtered <- function(dat) {
-  d <- filter(dat, !is.na(dat$steps))
-  d
-}
-get_total_steps <- function(dat) {
-  total_steps <- aggregate(dat$steps, list(date=dat$date), sum)
-  total_steps
-}
-gen_hist <- function(dat) {
-  hist(dat$x,xlab='Daily Total Steps', main='Total Number of steps per day')  
-}
-gen_mean <- function(dat) {
-  mean_ts <- mean(dat$x)
-  mean_ts
-}
-gen_median <- function(dat) {
-  median_ts <- median(dat$x)
-  median_ts
-}
-compute_missing_value <- function() {
-  r <- 1
-}
+# Reproducible Research: Peer Assessment 1
+
+```
+## 
+## Attaching package: 'dplyr'
+## 
+## The following object is masked from 'package:stats':
+## 
+##     filter
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
 ```
 
 
 ## Loading and preprocessing the data
 1. Unzip raw data file
-```{r}
+
+```r
 unzip("activity.zip")
 ```
 2. Read extracted csv file
-```{r}
+
+```r
 data_raw <- read.csv("activity.csv", sep=",", header=TRUE, na.strings="NA")
 ```
 3. Preprocess
-```{r}
+
+```r
 data_raw$date <- as.character(data_raw$date)
 data_raw$interval <- as.numeric(as.character(data_raw$interval))
 data_filtered <- get_filtered(data_raw)
 ```
 
 ## What is mean total number of steps taken per day?
-```{r}
+
+```r
 total_steps <- get_total_steps(data_filtered)
 gen_hist(total_steps)
+```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+
+```r
 mean_o <- gen_mean(total_steps)
 median_o <- gen_median(total_steps)
 median_o
 ```
 
+```
+## [1] 10765
+```
+
 
 
 ## What is the average daily activity pattern?
-```{r}
+
+```r
 ts_interval <- aggregate(data_filtered$steps, list(date=data_filtered$interval), mean)
 plot(ts_interval, type='l')
+```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
+
+```r
 max_steps_interval <- ts_interval[which.max(ts_interval$x),]$date
 ```
 
 
 
 ## Imputing missing values
-```{r}
+
+```r
 #4.1
 total_nas <- sum(is.na(data_raw$steps))
 #4.2
@@ -84,6 +86,11 @@ data_new[na_idcs,] <- na_rows
 #4.4 
 ts <- get_total_steps(data_new)
 gen_hist(ts)
+```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
+
+```r
 mean_comp <- gen_mean(ts)
 median_comp <- gen_median(ts)
 # Do these values differ from the estimates from the first part of the assignment? 
@@ -97,7 +104,8 @@ median_diff <- median_o - median_comp;
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r}
+
+```r
 #5.1
 wend_idcs <- (weekdays(as.Date(data_new$date))=='Samstag' | weekdays(as.Date(data_new$date))=='Sonntag')
 fv <- factor(wend_idcs, labels=c('WEEKDAY','WEEKEND'))
@@ -107,3 +115,5 @@ ts_interval_new <- aggregate(data_new$steps, list(interval=data_new$interval, fv
 colnames(ts_interval_new)[3]<-'num_of_steps'
 xyplot(num_of_steps ~ interval | fv, data=ts_interval_new, layout=c(1,2), type='l')
 ```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
